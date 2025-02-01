@@ -170,7 +170,3 @@ cython_debug/
 # PyPI configuration file
 .pypirc
 
-
-# Custom ignores
-data/*
-!data/.gitattributes  # Keep LFS tracking active

@@ -1,0 +1,41 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "PolyScan"
+version = "0.1.0"
+description = "A deep learning-based polyp segmentation project using FCN and U-Net architectures."
+authors = [{ name = "Orkhan Shirin", email = "orkhan.shirinow@gmail.com" }]
+license = { file = "LICENSE" }
+readme = "README.md"
+requires-python = ">=3.8"
+
+dependencies = [
+    "torch>=2.0.0",
+    "torchvision>=0.15.0",
+    "torchaudio>=2.0.0",
+    "numpy>=1.23.0",
+    "pandas>=1.5.0",
+    "matplotlib>=3.6.0",
+    "opencv-python>=4.6.0",
+    "argparse>=1.4.0"
+]
+
+[project.optional-dependencies]
+dev = [
+    "black",
+    "flake8",
+    "pytest"
+]
+
+[project.scripts]
+train = "src.train:main"
+evaluate = "src.evaluate:main"
+inference = "src.inference:main"
+
+[tool.setuptools]
+packages = ["src"]
+
+[tool.setuptools.package-data]
+"src" = ["*.json", "*.csv"]

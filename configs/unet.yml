@@ -1,44 +1,43 @@
 # model architecture
-model_name: "UNet"
-model_params:
-  in_channels: 3             # 1 for grayscale, 3 for RGB 
-  init_filters: 64           # initial convolution filters
-  num_classes: 2             # background + polyp
-  deep_supervision: True     # optional deep supervision
+model:
+  name: "unet"
+  experiment_name: "unet"  # auto-generated runs: unet_YYYYMMDD_HHMM 
+  params:
+    in_channels: 3         # 1 for grayscale, 3 for RGB
+    init_filters: 64       # more filters than FCN
+    num_classes: 2         # background + polyp
+    deep_supervision: True # additional deep supervision
 
 # training parameters
 training:
-  epochs: 50
-  batch_size: 8              # smaller batches for high-res
-  lr: 0.0005
-  weight_decay: 1e-4
-  output_dir: "runs"         # base directory
-  save_top_k: 3              # keep only top 3 checkpoints
-  lr_scheduler:
-    mode: "plateau"          # ReduceLROnPlateau
-    factor: 0.2
-    patience: 3
+  epochs: 200              # UNet needs longer training
+  batch_size: 8            # smaller batches for high-res
+  optimizer:
+    lr: 0.0005             # lower learning rate than FCN
+    weight_decay: 1e-4
+  scheduler:
+    name: "plateau"        # ReduceLROnPlateau
+    mode: "min"
+    factor: 0.2            # aggressive LR reduction
+    patience: 5            # wait 5 epochs before reducing
 
 # data configuration  
 data:
   root_dir: "data"
   metadata_file: "metadata.csv"
-  split_seed: 42
   split_ratios: [0.7, 0.15, 0.15]
-  augmentations:
-    - name: HorizontalFlip
-      probability: 0.5
-    - name: VerticalFlip
-      probability: 0.5
-    - name: RandomRotate
-      degrees: 45
-      probability: 0.5
+  augmentations:          # more aggressive transforms
     - name: ElasticTransform
       alpha: 120
       sigma: 120
-      alpha_affine: 50
       probability: 0.4
     - name: GridDistortion
       num_steps: 5
       distort_limit: 0.3
-      probability: 0.2
+      probability: 0.3
+
+# checkpointing
+checkpoint:
+  save_dir: "runs"        # will create runs/unet_YYYYMMDD_HHMM
+  save_interval: 5        # save more frequently
+  keep_top_k: 5           # keep more checkpoints

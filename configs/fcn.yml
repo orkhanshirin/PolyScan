@@ -1,40 +1,39 @@
 # model architecture
-model_name: "FCN"
-model_params:
-  in_channels: 3             # 1 for grayscale, 3 for RGB
-  init_filters: 32           # initial convolution filters
-  num_classes: 2             # background + polyp
+model:
+  name: "fcn"
+  experiment_name: "fcn"  # auto-generated runs will be fcn_YYYYMMDD_HHMM
+  params:
+    in_channels: 3        # 1 for grayscale, 3 for RGB
+    init_filters: 32      # initial convolution filters
+    num_classes: 2        # background + polyp
 
 # training parameters
 training:
-  epochs: 100
-  batch_size: 16
-  lr: 0.001
-  weight_decay: 1e-4         # L2 regularization
-  output_dir: "runs"         # base directory
-  save_top_k: 3              # keep only top 3 checkpoints
-  lr_scheduler:
-    mode: "step"             # "step" or "plateau"
-    step_size: 50            # for step scheduler
-    gamma: 0.1               # LR reduction factor
-    patience: 5              # for plateau scheduler
+  epochs: 150             # longer training for convergence
+  batch_size: 16          # FCN is memory-efficient
+  optimizer:
+    lr: 0.001             # higher learning rate than UNet
+    weight_decay: 1e-4    # L2 regularization
+  scheduler:
+    name: "step"          # step learning rate decay
+    step_size: 50         # decay every 50 epochs
+    gamma: 0.1            # LR multiplier at each step
 
 # data configuration
 data:
   root_dir: "data"
   metadata_file: "metadata.csv"
-  split_seed: 42             # for reproducible splits
   split_ratios: [0.7, 0.15, 0.15]  # train/val/test
-  augmentations:
+  augmentations:                   # basic spatial transforms
     - name: HorizontalFlip
       probability: 0.5
     - name: VerticalFlip
       probability: 0.3
     - name: RandomRotate
       degrees: 25
-      probability: 0.4
-    - name: ColorJitter
-      brightness: 0.2
-      contrast: 0.2
-      saturation: 0.2
-      probability: 0.3
+
+# checkpointing
+checkpoint:
+  save_dir: "runs"       # will create runs/fcn_YYYYMMDD_HHMM
+  save_interval: 10      # save every 10 epochs
+  keep_top_k: 3          # only keep 3 best checkpoints

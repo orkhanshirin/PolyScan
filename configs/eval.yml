@@ -1,0 +1,39 @@
+# configs/eval.yml
+
+# model config
+model:
+  name: "unet"              # model architecture: "unet" or "fcn"
+  experiment_name: "unet"   # base name for experiment runs (e.g., "unet_20231115_1430")
+  use_latest: True          # automatically find latest checkpoint for experiment
+  params:
+    in_channels: 3          # 1 for grayscale, 3 for RGB
+    init_filters: 64        # initial convolution filters
+    num_classes: 2          # background + polyp
+
+# evaluation Parameters
+evaluation:
+  device: "cuda"            # "cuda" or "cpu"
+  batch_size: 8             # reduce if facing memory issues
+  metrics:                  # metrics to compute
+    - dice
+    - iou
+    - sensitivity
+    - specificity
+  compute_hd95: False       # requires MONAI installation
+
+# visualization Settings
+visualization:
+  enable: True              # generate prediction visualizations
+  num_samples: 8            # number of cases to visualize
+  output_path: "results/unet_evaluation"  # save directory
+
+# data configuration
+data:
+  root_dir: "data"          # root directory for dataset
+  metadata_file: "metadata.csv"  # CSV with image/mask paths
+  test_split: 0.1           # fraction of data reserved for testing
+
+# advanced options - usually no need to change
+logging:
+  mlflow_tracking: True     # log results to MLflow
+  console_log_level: "INFO" # DEBUG, INFO, WARNING, ERROR

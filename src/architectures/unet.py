@@ -15,22 +15,22 @@ class UNet(nn.Module):
         """
         super().__init__()
 
-        # Encoder Path
+        # encoder path
         self.enc1 = self._conv_block(in_channels, init_filters)
         self.enc2 = self._conv_block(init_filters, init_filters * 2)
         self.enc3 = self._conv_block(init_filters * 2, init_filters * 4)
 
-        # Bottleneck
+        # bottleneck
         self.bottleneck = self._conv_block(init_filters * 4, init_filters * 8)
 
-        # Decoder Path
+        # decoder path
         self.dec3 = self._conv_block(
             init_filters * 12, init_filters * 4
         )  # 8*2 + 4 = 12?
         self.dec2 = self._conv_block(init_filters * 6, init_filters * 2)
         self.dec1 = self._conv_block(init_filters * 3, init_filters)
 
-        # Final Output
+        # final Output
         self.final = nn.Conv2d(init_filters, num_classes, kernel_size=1)
 
         self.pool = nn.MaxPool2d(kernel_size=2, stride=2)
@@ -47,15 +47,15 @@ class UNet(nn.Module):
         )
 
     def forward(self, x):
-        # Encoder
+        # encoder
         e1 = self.enc1(x)
         e2 = self.enc2(self.pool(e1))
         e3 = self.enc3(self.pool(e2))
 
-        # Bottleneck
+        # bottleneck
         bn = self.bottleneck(self.pool(e3))
 
-        # Decoder with skip connections
+        # decoder with skip connections
         d3 = F.interpolate(bn, size=e3.shape[2:], mode="bilinear", align_corners=False)
         d3 = torch.cat([d3, e3], dim=1)
         d3 = self.dec3(d3)

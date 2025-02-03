@@ -1,6 +1,6 @@
 import os
 
-from torch.utils.data import Subset, DataLoader
+from torch.utils.data import DataLoader, Subset
 
 from .dataset import PolypDataset
 from .split import create_splits
@@ -32,13 +32,13 @@ def load_data(
     img_dir = os.path.join(data_dir, "PNG/Original")
     mask_dir = os.path.join(data_dir, "PNG/Ground Truth")
 
-    # Initialize dataset
+    # init dataset
     dataset = PolypDataset(metadata_path, img_dir, mask_dir, transform=transform)
 
-    # Create splits
+    # create splits
     idx_train, idx_val, idx_test = create_splits(len(dataset), train_split, val_split)
 
-    # Create DataLoaders
+    # create DataLoaders
     train_loader = DataLoader(
         Subset(dataset, idx_train), batch_size=batch_size, shuffle=True
     )

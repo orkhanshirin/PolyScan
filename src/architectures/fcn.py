@@ -14,19 +14,19 @@ class FCN(nn.Module):
         """
         super().__init__()
 
-        # Blocks 1-3
+        # blocks 1-3
         self.block1 = self._conv_block(in_channels, init_filters)
         self.block2 = self._conv_block(init_filters, init_filters * 2)
         self.block3 = self._conv_block(init_filters * 2, init_filters * 4)
 
-        # Final block
+        # final block
         self.block4 = nn.Sequential(
             nn.Conv2d(init_filters * 4, init_filters * 4, kernel_size=1),
             nn.ReLU(inplace=True),
             nn.Conv2d(init_filters * 4, num_classes, kernel_size=1),
         )
 
-        # Pooling layer
+        # pooling layer
         self.pool = nn.MaxPool2d(kernel_size=2, stride=2)
 
     def _conv_block(self, in_ch, out_ch):
@@ -59,7 +59,7 @@ class FCN(nn.Module):
         Returns:
             torch.Tensor: Output tensor of shape [N, num_classes, H, W].
         """
-        # Encoder path
+        # encoder path
         x = self.block1(x)
         x = self.pool(x)
 
@@ -69,10 +69,10 @@ class FCN(nn.Module):
         x = self.block3(x)
         x = self.pool(x)
 
-        # Final block
+        # final block
         x = self.block4(x)
 
-        # Upsample to input size
+        # upsample to input size
         x = F.interpolate(
             x,
             size=(x.shape[2] * 8, x.shape[3] * 8),

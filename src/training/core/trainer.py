@@ -1,14 +1,27 @@
 import time
 from pathlib import Path
+import random
 from typing import Any, Dict, Optional
 
+import numpy as np
 import torch
 from torch.utils.data import DataLoader
 
 from .callbacks import CheckpointCallback, EarlyStopping
-from .helpers import get_logger, set_seed
+from src.helpers import get_logger 
 
 logger = get_logger(__name__)
+
+
+def set_seed(seed: int = 42):
+    """Set all random seeds for reproducibility"""
+    torch.manual_seed(seed)
+    np.random.seed(seed)
+    random.seed(seed)
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed_all(seed)
+        torch.backends.cudnn.deterministic = True
+        torch.backends.cudnn.benchmark = False
 
 
 class Trainer:

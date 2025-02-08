@@ -1,43 +1,77 @@
-import torch
-import numpy as np
-import cv2
 import os
-import matplotlib.pyplot as plt
+from pathlib import Path
+from typing import Any
 
-def dice_coeff(target, pred, n_classes=2):
-    """Computes Dice coefficient per class."""
-    smooth = 1e-6
-    dice = torch.zeros(n_classes, device=target.device)
-    for c in range(n_classes):
-        intersection = ((pred == c) & (target == c)).float().sum()
-        union = (pred == c).float().sum() + (target == c).float().sum()
-        dice[c] = (2.0 * intersection + smooth) / (union + smooth)
-    return dice
+import torch
+import yaml
 
-def overlay_segmentation(image, mask, alpha=0.4):
-    """Overlays segmentation mask on the original image."""
-    image = np.array(image, dtype=np.uint8)
-    mask = np.array(mask, dtype=np.uint8) * 255
-    overlay = np.zeros_like(image)
-    overlay[mask == 255] = [255, 0, 0]  # Red color for segmentation
-    return cv2.addWeighted(image, 1 - alpha, overlay, alpha, 0)
 
-def visualize_predictions(imgs_testset, prediction, idx_test, data_dir="data", n_samples=8, output_dir="outputs", save_outputs=False):
-    """Visualizes and optionally saves segmentation predictions."""
-    fig, axes = plt.subplots(n_samples, 2, figsize=(10, n_samples * 2.5))
-    all_filenames = sorted(os.listdir(os.path.join(data_dir, "PNG/Original")))
-    test_filenames = [all_filenames[i] for i in idx_test]
+def find_latest_model(experiment_name: str) -> str:
+    """Finds latest model checkpoint for an experiment"""
+    runs_dir = Path("runs")
+    experiment_dirs = [
+        d
+        for d in runs_dir.iterdir()
+        if d.is_dir() and d.name.startswith(experiment_name)
+    ]
 
-    for i in range(n_samples):
-        img_filename = test_filenames[i]
-        img_path = os.path.join(data_dir, "PNG/Original", img_filename)
-        img_original = cv2.imread(img_path)
-        img_original = cv2.cvtColor(img_original, cv2.COLOR_BGR2RGB)
-        overlayed_image = overlay_segmentation(img_original, prediction[i].cpu().numpy())
-        axes[i, 0].imshow(img_original)
-        axes[i, 1].imshow(overlayed_image)
-        axes[i, 0].axis("off")
-        axes[i, 1].axis("off")
+    if not experiment_dirs:
+        raise FileNotFoundError(f"No runs found for experiment {experiment_name}")
 
-    plt.tight_layout()
-    plt.show()
+    # sort by creation time (newest first)
+    sorted_dirs = sorted(
+        experiment_dirs, key=lambda d: os.path.getctime(d), reverse=True
+    )
+
+    # look for checkpoints in latest directory
+    latest_dir = sorted_dirs[0]
+    model_path = latest_dir / "checkpoints" / "best_model.pt"
+
+    if not model_path.exists():
+        raise FileNotFoundError(f"No model found in {latest_dir}")
+
+    return str(model_path)
+
+
+def resolve_model_path(config: dict) -> str:
+    """find model path based on experiment configuration"""
+    if config["model"].get("path"):
+        return config["model"]["path"]
+
+    if config["model"].get("use_latest") and config["model"].get("experiment_name"):
+        experiment_name = config["model"]["experiment_name"]
+        runs_dir = Path("runs")
+        experiment_dirs = sorted(
+            [d for d in runs_dir.iterdir() if d.name.startswith(experiment_name)],
+            key=lambda d: d.stat().st_ctime,
+            reverse=True,
+        )
+
+        if not experiment_dirs:
+            raise FileNotFoundError(f"no runs found for experiment {experiment_name}")
+
+        latest_run = experiment_dirs[0]
+        model_path = latest_run / "checkpoints" / "best_model.pth"
+
+        if not model_path.exists():
+            raise FileNotFoundError(f"model not found in {latest_run}")
+
+        return str(model_path)
+
+    raise ValueError("could not resolve model path from config")
+
+
+def load_config(config_path: str) -> dict[str, Any]:
+    """Load and validate evaluation configuration"""
+    with open(config_path) as f:
+        config = yaml.safe_load(f)
+
+    # set device
+    config["device"] = torch.device(
+        config.get("device", "cuda" if torch.cuda.is_available() else "cpu")
+    )
+
+    # resolve model path
+    config["model_path"] = resolve_model_path(config)
+
+    return config

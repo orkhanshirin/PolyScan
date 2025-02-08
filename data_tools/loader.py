@@ -4,6 +4,7 @@ from torch.utils.data import DataLoader, Subset
 
 from .dataset import PolypDataset
 from .split import create_splits
+from .validate import validate_dataset
 
 
 def load_data(
@@ -34,6 +35,9 @@ def load_data(
 
     # init dataset
     dataset = PolypDataset(metadata_path, img_dir, mask_dir, transform=transform)
+
+    # validate dataset
+    validate_dataset(dataset)
 
     # create splits
     idx_train, idx_val, idx_test = create_splits(len(dataset), train_split, val_split)

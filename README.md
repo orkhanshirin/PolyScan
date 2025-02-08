@@ -79,7 +79,8 @@ python3 src/inference/inference.py \
 
 Key configuration files:
 
-    configs/train.yml: Training hyperparameters
+    configs/unet.yml: Training hyperparameters for UNet
+    configs/fcn.yml: Training hyperparameters for FCN
     configs/eval.yml: Evaluation metrics setup
     configs/inference.yml: Clinical deployment settings
 

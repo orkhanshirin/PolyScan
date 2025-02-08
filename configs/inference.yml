@@ -1,0 +1,33 @@
+# configs/inference.yml
+
+# model config
+model:
+  name: "unet"               # model architecture: "fcn" or "unet"
+  experiment_name: "unet"    # base name for experiment runs (e.g., "unet_20231115_1430")
+  use_latest: True           # auto-find latest checkpoint
+  params:
+    in_channels: 3
+    init_filters: 64
+    num_classes: 2
+
+# data preprocessing
+data:
+  input_size: [256, 256]
+  normalize:
+    mean: [0.485, 0.456, 0.406]
+    std: [0.229, 0.224, 0.225]
+
+# visualization settings
+visualization:
+  overlay_color: [255, 0, 0]
+  alpha: 0.4
+  save_raw_output: True
+
+# device config
+device: "auto"
+
+# output settings
+output:
+  default_dir: "results/inference"
+  format: "png"
+  dpi: 300

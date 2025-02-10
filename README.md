@@ -69,7 +69,7 @@ python3 src/evaluation/evaluate.py --config configs/eval.yml
 ### Inference
 
 ```bash
-python3 src/inference/inference.py \
+python3 src/inference.py \
   --config configs/inference.yml \
   --image data/samples/polyp_case_15.png \
   --output results/prediction.png
